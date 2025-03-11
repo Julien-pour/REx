@@ -9,7 +9,7 @@ from openai import OpenAI
 from ..caching import _CacheSystem
 
 def add_llm_args(parser):
-    parser.add_argument('--llm-model', type=str, default='gpt-4', help="The model to use for LLM")
+    parser.add_argument('--llm-model', type=str, default='gpt-4o-mini', help="The model to use for LLM")
     parser.add_argument('--llm-temperature', type=float, default=1.0, help="The temperature to use for LLM")
     parser.add_argument('--llm-seed', type=int, default=None, help="The seed to use for LLM")
 def get_llm(args):
@@ -24,6 +24,7 @@ def get_llm(args):
 
 class LLM:
     def __init__(self, seed=0, default_args={'model': 'gpt-4', 'temperature': 1.0,},):
+        print(f"LLM: {default_args}")  
         self.llm = _LLM(seed=seed, default_args=copy.deepcopy(default_args))
         self.tracker = LLMUsageTracker()
     def __call__(self, prompt, model_args=None):
@@ -41,6 +42,7 @@ class LLM:
 class _LLM(_CacheSystem):
     def __init__(self, seed=0, default_args={'model': 'gpt-4', 'temperature': 1.0,},):
         super(_LLM, self).__init__(seed=seed, stochastic=True,)
+        default_args["seed"] = seed
         self.default_args = default_args
         self.client = OpenAI()
         self.local_tracker = LLMUsageTracker()
@@ -58,7 +60,7 @@ class _LLM(_CacheSystem):
         model_args = self._merge_args(model_args)
         assert isinstance(model_args, dict), f"model_args: {model_args}"
         prompt_id = hashlib.md5(str(prompt).encode()).hexdigest()
-        model_args_id = '-'.join([f"{k}_{str(v)[:5]}" for k, v in model_args.items()])
+        model_args_id = '-'.join([f"{k}_{str(v)}" for k, v in model_args.items()])
         return (
             ('prompt', prompt_id, prompt),
             ('model_args', model_args_id, model_args),

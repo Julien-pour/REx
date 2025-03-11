@@ -1,2 +1,8 @@
 .DS_Store
 __pycache__
+
+acr/utils/caching/cached_data/_LLM/
+
+acr/utils/caching/cached_data/APPSCachedCheck/
+
+logs/
