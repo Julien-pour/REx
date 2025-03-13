@@ -12,6 +12,8 @@ def add_llm_args(parser):
     parser.add_argument('--llm-model', type=str, default='gpt-4o-mini', help="The model to use for LLM")
     parser.add_argument('--llm-temperature', type=float, default=1.0, help="The temperature to use for LLM")
     parser.add_argument('--llm-seed', type=int, default=None, help="The seed to use for LLM")
+    parser.add_argument('--llm-cache-path', type=str, default='', help="LLM generated data cache path")
+
 def get_llm(args):
     if args.llm_seed is None:
         # assert 'seed' in dir(args), f"args: {args}"
@@ -20,12 +22,15 @@ def get_llm(args):
     return LLM(default_args={
         'model': args.llm_model,
         'temperature': args.llm_temperature,
-    }, seed=args.llm_seed,)
+    }, seed=args.llm_seed, cache_path = args.llm_cache_path)
 
 class LLM:
-    def __init__(self, seed=0, default_args={'model': 'gpt-4', 'temperature': 1.0,},):
+    def __init__(self, seed=0, default_args={'model': 'gpt-4', 'temperature': 1.0,},cache_path = None):
         print(f"LLM: {default_args}")  
-        self.llm = _LLM(seed=seed, default_args=copy.deepcopy(default_args))
+        if cache_path == "":
+            cache_path = None
+
+        self.llm = _LLM(seed=seed, default_args=copy.deepcopy(default_args),cache_path=cache_path)
         self.tracker = LLMUsageTracker()
     def __call__(self, prompt, model_args=None):
         completion = self.llm(prompt, model_args)
@@ -40,8 +45,8 @@ class LLM:
         self.llm.set_seed(seed)
 
 class _LLM(_CacheSystem):
-    def __init__(self, seed=0, default_args={'model': 'gpt-4', 'temperature': 1.0,},):
-        super(_LLM, self).__init__(seed=seed, stochastic=True,)
+    def __init__(self, seed=0, default_args={'model': 'gpt-4', 'temperature': 1.0,},cache_path = None):
+        super(_LLM, self).__init__(seed=seed, stochastic=True,cache_path = cache_path)
         default_args["seed"] = seed
         self.default_args = default_args
         self.client = OpenAI()
