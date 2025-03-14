@@ -13,7 +13,6 @@ parser.add_argument("--model_path", type=str, help="Number of hours")
 args = parser.parse_args()
 
 
-idx_gen = args.idx_gen
 def generate_slurm_script(args,job_name):
 
     if args.dev:
