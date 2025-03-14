@@ -6,7 +6,6 @@ parser = argparse.ArgumentParser(description="Argument parsing for ARC experimen
 parser.add_argument("--dev", action=argparse.BooleanOptionalAction, help="Development mode")
 parser.add_argument("--long", action=argparse.BooleanOptionalAction, help="long mode 100h instead of 20h")
 parser.add_argument("--medium", action=argparse.BooleanOptionalAction, help="medium mode 40h instead of 20h")
-parser.add_argument("--long", action=argparse.BooleanOptionalAction, help="long mode 100h instead of 20h")
 parser.add_argument("--hour", type=int, default=20, help="Number of hours")
 parser.add_argument("--n_gpu", type=int, default=1, help="Number of hours")
 parser.add_argument("--model_path", type=str, help="Number of hours")
