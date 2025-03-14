@@ -85,8 +85,8 @@ def main():
         list_response = llm_serv.generate(list_prompts)
         # compute rewards
         list_solved = []
-        for problem_id in list_problem_to_solve:
-            reward, done, new_actions = domain.step_execute(list_idx_actions_selected[problem_id],problem_id,list_response[problem_id][0])
+        for id_resp,problem_id in enumerate(list_problem_to_solve):
+            reward, done, new_actions = domain.step_execute(list_idx_actions_selected[problem_id],problem_id,list_response[id_resp][0])
             all_metrics[problem_id].append(domain.get_metrics(problem_id))
             if done:
                 list_solved.append(problem_id)
