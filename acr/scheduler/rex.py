@@ -2,7 +2,7 @@
 # coding=utf-8
 
 import numpy as np
-
+from tqdm import trange
 def add_rex_args(parser):
     parser.add_argument('--rex-smoothing', type=float, default=1)
     parser.add_argument('--rex-constant', type=float, default=1)

@@ -38,8 +38,11 @@ def main():
     result_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'results', args.domain)
     os.makedirs(result_dir, exist_ok=True)
     domain = get_domain(args)
+    client = None
     if args.sglang:
         llm_serv = LLM_serv(model_path = args.llm_model, seed=args.llm_seed, temperature = args.llm_temperature, fp8 = True, n_gpu = args.n_gpu)
+        client = llm_serv.client
+        domain.llm.llm.client = client
     if args.data_index is not None:
         assert len(args.seeds) == 1, 'Cannot specify multiple seeds when running a single problem'
         metrics_list = run_with_scheduler(domain, args.data_index, args.seeds[0], args)
