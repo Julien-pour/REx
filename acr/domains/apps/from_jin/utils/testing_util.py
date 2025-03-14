@@ -13,6 +13,20 @@ import gc
 from enum import Enum
 from tqdm import tqdm
 
+try:
+    import resource
+    RESOURCE_MODULE_AVAILABLE = True
+except ImportError:
+    RESOURCE_MODULE_AVAILABLE = False
+
+
+def limit_memory(max_memory):
+    if RESOURCE_MODULE_AVAILABLE:
+        # Add some buffer for scipy's internal operations
+        actual_limit = max_memory + (1024 * 1024 * 1024)  # Add 256MB buffer
+        soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+        resource.setrlimit(resource.RLIMIT_AS, (actual_limit, hard))
+
 
 class CODE_TYPE(Enum):
     call_based = 0
