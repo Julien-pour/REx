@@ -75,6 +75,8 @@ export CORE_PATTERN=/dev/null
 conda deactivate
 conda activate acr
 module load cuda/12.4.1
+export TORCH_CUDA_ARCH_LIST="9.0"
+
 """
 
     return script
@@ -82,15 +84,6 @@ module load cuda/12.4.1
 
 
 script_inference = """
-conda deactivate
-module purge
-module load arch/h100
-module load python/3.11.5
-conda deactivate
-conda activate sglang43_2
-module load cuda/12.4.1
-
-export TORCH_CUDA_ARCH_LIST="9.0"
 
 cd /lustre/fsn1/projects/rech/imi/uqv82bm/REx/
 
