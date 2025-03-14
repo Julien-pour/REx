@@ -68,7 +68,7 @@ def main():
     for problem_id in range(len(list_all_actions)):
         list_all_actions[problem_id] = [new_action(act) for act in list_all_actions[problem_id]]
 
-    max_steps = 1
+    max_steps = 300
 
     for si in trange(max_steps):
         list_prompts = []
@@ -91,7 +91,7 @@ def main():
             if done:
                 list_solved.append(problem_id)
                 list_solved_history.append(problem_id)
-                break
+                continue
             try:
                 list_all_actions[problem_id][list_idx_actions_selected[problem_id]]["alpha"] += reward
                 list_all_actions[problem_id][list_idx_actions_selected[problem_id]]["beta"] += (1 - reward)
