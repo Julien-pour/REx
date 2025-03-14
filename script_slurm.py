@@ -9,6 +9,7 @@ parser.add_argument("--medium", action=argparse.BooleanOptionalAction, help="med
 parser.add_argument("--hour", type=int, default=20, help="Number of hours")
 parser.add_argument("--n_gpu", type=int, default=1, help="Number of hours")
 parser.add_argument("--model_path", type=str, help="Number of hours")
+parser.add_argument("--h100", action=argparse.BooleanOptionalAction, default =True, help="medium mode 40h instead of 20h")
 
 args = parser.parse_args()
 
