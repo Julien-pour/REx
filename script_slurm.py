@@ -87,7 +87,7 @@ script_inference = """
 
 cd /lustre/fsn1/projects/rech/imi/uqv82bm/REx/
 export OPENAI_API_KEY="None"
-python -m acr.run.py --domain apps --apps-difficulty comp --scheduler rex --rex-constant 20 --llm-seed 0 --llm-model {model_path} --n_gpu {n_gpu}
+python -m acr.run --domain apps --apps-difficulty comp --scheduler rex --rex-constant 20 --llm-seed 0 --llm-model {model_path} --n_gpu {n_gpu}
 
 """
 script_inference = script_inference.format(model_path=args.model_path, n_gpu=args.n_gpu)
