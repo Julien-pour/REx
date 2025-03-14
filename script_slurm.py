@@ -102,12 +102,13 @@ model_name=args.model_path.split("/")[-1]
 job_name="REX_"+model_name
 full_script = generate_slurm_script(args,job_name=job_name) + script_inference
 
-slurmfile_path = f'slurm/run_{job_name}.slurm'
+slurmfile_path = f'run_{job_name}.slurm'
 
 with open(slurmfile_path, 'w') as f:
     f.write(full_script)
 
 subprocess.call(f'sbatch {slurmfile_path}', shell=True)
 
-
+# del slurmfile_path
+os.remove(slurmfile_path)
 
