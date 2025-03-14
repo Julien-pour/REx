@@ -19,8 +19,13 @@ def get_llm(args):
         # assert 'seed' in dir(args), f"args: {args}"
         # assert args.seed is not None, f"args: {args}"
         args.llm_seed = args.seed if 'seed' in dir(args) and args.seed is not None else 0
-        if "/" in args.llm_model:
-            llm_model = args.llm_model.split("/")[-1]
+    llm_model = args.llm_model
+    if "/" in args.llm_model:
+        llm_model = args.llm_model.split("/")[-1]
+    if args.llm_cache_path == "":
+        llm_cache_path = None
+    else:
+        llm_cache_path = args.llm_cache_path
     return LLM(default_args={
         'model': llm_model,
         'temperature': args.llm_temperature,

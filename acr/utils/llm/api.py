@@ -81,7 +81,7 @@ def terminate_sglang_serv(server_process):
     terminate_process(server_process)
 
 class LLM_serv:
-    def __init__(self,model_path, model_len=30000, seed=0, n_gpu=1, temperature=1., max_timeout=60*60*3, min_p = 0.1, max_workers = 64,gpu_mem=0.9,fp8=False):
+    def __init__(self,model_path, model_len=30000, seed=0, n_gpu=1, temperature=1., max_timeout=60*60*3, min_p = 0.1, max_workers = 64,gpu_mem=0.9,fp8=False,max_tokens=None):
         self.model_path = model_path
         self.model_len = model_len
         self.seed = seed
@@ -90,7 +90,10 @@ class LLM_serv:
         self.max_timeout = max_timeout
         self.min_p = min_p
         self.max_workers = max_workers
+        self.max_tokens = max_tokens
         self.server_process, self.client, self.cfg_generation = init_sglang_serv(model_path, model_len, seed, n_gpu, temperature, max_timeout, min_p, max_memory = gpu_mem,fp8=fp8)
+        if self.max_tokens is not None:
+            self.cfg_generation["max_tokens"] = self.max_tokens
         out = self.generate(["Hello"])
         print(out)
         
@@ -112,44 +115,28 @@ def get_completion(client, prompt: str, cfg_generation, system_prompt=None, temp
     if system_prompt is None:
         system_prompt = "You are an AI assistant specialized in solving Abstract Reasoning Corpus (ARC-AGI) tasks by reasoning and generating Python code."
 
-    if  "deepseek" in cfg_generation.get("model"):
-        out = []
-        n=copy.deepcopy(kwargs["n"])
-        kwargs["n"]=1
-        for _ in range(n):
-            
-            try:
-                completion = client.chat.completions.create(
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt}
-                    ],
-                    **kwargs
-                )
-                out.append(completion.choices[0].message.content)
-            except Exception as e:
-                print("completion problem: ", e)
-                raise e
-                return [None] * 5
-        return out
-    else:
-        try:
-            completion = client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt}
-                ],
-                **kwargs
-            )
-        except Exception as e:
-            print("completion problem: ", e)
-            too_long = "longer than the model's context length" in e.body["message"]
-            if too_long:
-                return [e.body["message"]] * n
+
+    try:
+        if isinstance(prompt[0],dict):
+            messages = prompt
+        else:
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": prompt}
+            ]
+        completion = client.chat.completions.create(
+            messages=messages,
+            **kwargs
+        )
+    except Exception as e:
+        print("completion problem: ", e)
+        too_long = "longer than the model's context length" in e.body["message"]
+        if too_long:
+            return [e.body["message"]] * n
 
 
-        out = [choice.message.content for choice in completion.choices]
-        return out
+    out = [choice.message.content for choice in completion.choices]
+    return out
         
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
