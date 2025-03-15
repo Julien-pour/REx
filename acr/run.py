@@ -56,7 +56,8 @@ def main():
             for seed in args.seeds:
                 metrics[-1].append(run_with_scheduler(domain, data_index, seed, args))
             # print(domain.summarize_results(metrics))
-            with open(os.path.join(result_dir, arg2name(args)+'.json'), 'w') as f:
+            name_save = arg2name(args).replace("/", "_")
+            with open(os.path.join(result_dir, name_save+'.json'), 'w') as f:
                 json.dump(metrics, f, indent=4)
     if args.sglang:
         llm_serv.terminate()
