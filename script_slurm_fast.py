@@ -10,7 +10,7 @@ parser.add_argument("--hour", type=int, default=20, help="Number of hours")
 parser.add_argument("--n_gpu", type=int, default=1, help="Number of hours")
 parser.add_argument("--model_path", type=str, help="Number of hours")
 parser.add_argument("--h100", action=argparse.BooleanOptionalAction, default =True, help="medium mode 40h instead of 20h")
-
+parser.add_argument('--max-steps', type=int, default=300)
 args = parser.parse_args()
 
 
@@ -87,10 +87,10 @@ script_inference = """
 
 cd /lustre/fsn1/projects/rech/imi/uqv82bm/REx/
 export OPENAI_API_KEY="None"
-python -m acr.run_fast_rex --domain apps_multi --apps-difficulty comp --scheduler rex --rex-constant 20 --llm-seed 0 --llm-model {model_path} --n_gpu {n_gpu} --llm-seed 1
+python -m acr.run_fast_rex --domain apps_multi --apps-difficulty comp --scheduler rex --rex-constant 20 --llm-seed 0 --llm-model {model_path} --n_gpu {n_gpu} --llm-seed 1 --max-steps {max_steps}
 
 """
-script_inference = script_inference.format(model_path=args.model_path, n_gpu=args.n_gpu)
+script_inference = script_inference.format(model_path=args.model_path, n_gpu=args.n_gpu, max_steps=args.max_steps)
 model_name=args.model_path.split("/")[-1]
 job_name="REX_"+model_name
 full_script = generate_slurm_script(args,job_name=job_name) + script_inference
