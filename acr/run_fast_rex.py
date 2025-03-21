@@ -10,7 +10,7 @@ from .scheduler import add_scheduler_args, run_with_scheduler
 from .utils.llm import add_llm_args, get_llm, LLM_serv
 from .utils.logging import set_logger
 from .scheduler.rex import add_rex_args, get_rex_args, rex
-from tqdm import trange
+from tqdm import trange,tqdm
 import numpy as np
 def get_args():
     parser = argparse.ArgumentParser()
@@ -71,7 +71,7 @@ def main():
     max_steps = 300
     list_save_response = {pb_id:[]for pb_id in list_problem_to_solve}
 
-    for si in trange(max_steps):
+    for si in trange(max_steps, desc="steps"):
         list_save_response_step= {pb_id:{}for pb_id in list_problem_to_solve}
         list_prompts = []
         list_idx_actions_selected = {}
@@ -84,10 +84,14 @@ def main():
             list_prompts.append(prompt)
         # break
         # generate solutions
+        print("==="*10)
+        print("generating response")
+        
         list_response = llm_serv.generate(list_prompts)
         # compute rewards
         list_solved = []
-        for id_resp,problem_id in enumerate(list_problem_to_solve):
+        print("checking response")
+        for id_resp,problem_id in enumerate(tqdm(list_problem_to_solve, desc="checking problem")):
             reward, done, new_actions = domain.step_execute(list_idx_actions_selected[problem_id],problem_id,list_response[id_resp][0])
             all_metrics[problem_id].append(domain.get_metrics(problem_id))
             if done:
