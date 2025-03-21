@@ -7,6 +7,8 @@ import hashlib
 
 from ..from_jin.utility import read_problems_data as _read_problems_data
 from ..from_jin.utility import run_single_solution_test as _run_single_solution_test
+from ..from_jin.sandbox import check_correctness
+
 from ....utils.caching import _CacheSystem
 
 def add_apps_data_args(parser):
@@ -16,12 +18,12 @@ def add_apps_data_args(parser):
         help='APPS difficulty level',
     )
 def get_apps_dataset(args):
-    return APPSDataset(args.apps_difficulty)
+    return APPSDataset(args.apps_difficulty,use_cache=args.use_cache,use_sandbox=args.use_sandbox)
 
 class APPSDataset:
-    def __init__(self, difficulty,):
+    def __init__(self, difficulty,use_cache=True,use_sandbox=False):
         self.difficulty = difficulty
-        self.cached_check = APPSCachedCheck()
+        self.cached_check = APPSCachedCheck(use_cache=use_cache,use_sandbox=use_sandbox)
         curdir = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(curdir, 'benchmarks', 'test-problem-ids-%s.txt' % self.difficulty)) as f:
             self.problem_ids = f.read().splitlines()
@@ -71,11 +73,12 @@ class APPSProblem:
         return self.data[key]
 
 class APPSCachedCheck(_CacheSystem):
-    def __init__(self, compile_timeout=20, runtime_timeout=5,):
+    def __init__(self, compile_timeout=20, runtime_timeout=5,use_cache=True,use_sandbox=False):
         assert compile_timeout == 20 and runtime_timeout == 5, 'APPS does not support custom timeouts'
-        super().__init__(None, seed=0, stochastic=False)
+        super().__init__(None, seed=0, stochastic=False,use_cache=use_cache)
         self.compile_timeout = compile_timeout
         self.runtime_timeout = runtime_timeout
+        self.use_sandbox = use_sandbox
     def _action(self, test_cases, solution,):
         if solution is None:
             return {
@@ -90,10 +93,17 @@ class APPSCachedCheck(_CacheSystem):
         assert solution is not None, solution
         all_results = dict()
         try:
-            message = _run_single_solution_test(
-                test_cases, solution, False, True,
-                self.compile_timeout, self.runtime_timeout,
-            )
+            if self.use_sandbox:
+                results = check_correctness(None,
+                    test_cases, solution,timeout = self.compile_timeout+ self.runtime_timeout,
+                    
+                )
+                message = results['message']
+            else:
+                message = _run_single_solution_test(
+                    test_cases, solution, False, True,
+                    self.compile_timeout, self.runtime_timeout,
+                )
         except Exception as e:
             print('Failed solution {0} tests results: {1}'.format(solution, e))
             assert 0 == 1  # temporary solution

@@ -10,7 +10,8 @@ import hashlib
 import time
 
 class _CacheSystem:
-    def __init__(self, cache_path=None, seed=0, stochastic=False):
+    def __init__(self, cache_path=None, seed=0, stochastic=False,use_cache = True):
+        self.use_cache = use_cache
         if cache_path is None:
             curdir = os.path.dirname(os.path.abspath(__file__))
             cache_path = os.path.join(curdir, 'cached_data', self.__class__.__name__)
@@ -25,6 +26,8 @@ class _CacheSystem:
         raise NotImplementedError
     def __call__(self, *args, nth=None, **kwargs):
         #((name, id, value), ...)
+        if not self.use_cache:
+            return self._action(*args, **kwargs)
         cache_id = self._cache_id(*args, **kwargs)
         assert isinstance(cache_id, tuple), f'cache_id must be a tuple, got {type(cache_id)}'
         assert all([len(cid)==3 for cid in cache_id]), f'cache_id must be a tuple of tuples of length 2, got {cache_id}'

@@ -217,7 +217,7 @@ def analyze_error(tests, line_number_offset, curr_results, curr_errors, outputs,
     return message
 
 
-def run_single_solution_test(tests, proposed_solution, use_old_run_func, run_all_tests, compile_timeout, runtime_timeout):
+def run_single_solution_test(tests, proposed_solution, use_old_run_func=False, run_all_tests=True, compile_timeout=20, runtime_timeout=5):
     if 'fn_name' in tests:
         evaluation_mode = 'function_call'
         line_number_offset = 15  # hard coded

@@ -82,10 +82,10 @@ def init_apps_exec(data, response, verbose_level=2):
     #     print()
     # return prompt
         # response = llm(prompt,)
-    if verbose_level >= 2:
-        print('-'*5, ' Response: ', '-'*20)
-        print(response.choices[0].message.content)
-        print()
+    # if verbose_level >= 2:
+    #     print('-'*5, ' Response: ', '-'*20)
+    #     print(response.choices[0].message.content)
+    #     print()
 
     solution = _extract_actual_solution({request_data['question_name']: request_data}, request_data['question_name'], response,)
     if verbose_level >= 2:

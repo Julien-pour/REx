@@ -69,8 +69,10 @@ def main():
         list_all_actions[problem_id] = [new_action(act) for act in list_all_actions[problem_id]]
 
     max_steps = 300
+    list_save_response = {pb_id:[]for pb_id in list_problem_to_solve}
 
     for si in trange(max_steps):
+        list_save_response_step= {pb_id:{}for pb_id in list_problem_to_solve}
         list_prompts = []
         list_idx_actions_selected = {}
         for problem_id in list_problem_to_solve:
@@ -108,6 +110,8 @@ def main():
         print("==="*10)
         print("step", si)
         print(f"problem solved: {len(list_solved_history)}/{len(list_all_actions)}")
+        for key in list_save_response_step:
+            list_save_response[key].append(list_save_response_step[key])
     for problem_id in range(len(list_all_actions)):
         all_metrics[problem_id] += [all_metrics[problem_id][-1]] * (max_steps - len(all_metrics[problem_id]))
 
@@ -116,6 +120,8 @@ def main():
         # print(domain.summarize_results(metrics))
     with open(os.path.join(result_dir, arg2name(args)+'.json'), 'w') as f:
         json.dump(all_metrics, f, indent=4)
+    with open(os.path.join(result_dir, arg2name(args)+'_response.json'), 'w') as f:
+        json.dump(list_save_response, f, indent=4)
     if args.sglang:
         llm_serv.terminate()
 if __name__ == '__main__':
