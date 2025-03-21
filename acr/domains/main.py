@@ -10,6 +10,8 @@ def add_domain_args(parser):
     add_apps_args(parser)
     parser.add_argument('--domain', type=str, default='loop_inv',)
     parser.add_argument("--multiprocess", action=argparse.BooleanOptionalAction,default=False, help="multiprocess")
+    parser.add_argument("--use-cache", action=argparse.BooleanOptionalAction,default=True, help="use cache")
+    parser.add_argument("--use-sandbox", action=argparse.BooleanOptionalAction,default=True, help="use sandbox")
 
 def get_domain(args):
     if args.domain == 'loop_inv':

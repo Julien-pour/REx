@@ -21,6 +21,7 @@ def get_args():
     parser.add_argument('--seeds', type=int, nargs='+', default=[0])
     parser.add_argument("--sglang", action=argparse.BooleanOptionalAction,default=True, help="use sglang")
     parser.add_argument('--n_gpu', type=int, default=1, help="Number of GPUs to use")
+    parser.add_argument('--llm_model', type=str, default='gpt-4o-mini', help="LLM model name")
     args = parser.parse_args()
     return args
 
