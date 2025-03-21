@@ -94,8 +94,9 @@ class APPSCachedCheck(_CacheSystem):
         all_results = dict()
         try:
             if self.use_sandbox:
+                timeout = self.compile_timeout + self.runtime_timeout* len(test_cases["inputs"]) + 20
                 results = check_correctness(None,
-                    test_cases, solution,timeout = self.compile_timeout+ self.runtime_timeout,
+                    test_cases, solution,timeout = timeout,
                     
                 )
                 message = results['message']
