@@ -106,16 +106,16 @@ class APPSDomain(_Domain):
             for i, action in enumerate(self.actions)
         ]
 
-        if self.verbose:
-            print(f"Problem {problem_id} reset")
+        # if self.verbose:
+        #     print(f"Problem {problem_id} reset")
         return output_new_actions
     
     def step(self, action_index, return_heuristic=False):
         assert 0 <= action_index < len(self.actions)
         self.cur_step += 1
         action = self.actions[action_index]
-        print()
-        print('='*10, f'Step {self.cur_step}', f'Action {action.name}', '='*10)
+        # print()
+        # print('='*10, f'Step {self.cur_step}', f'Action {action.name}', '='*10)
         result = action.run()
         reward, done = self.compute_reward(result)
         heuristic = self.compute_heuristic(result)
@@ -126,9 +126,9 @@ class APPSDomain(_Domain):
             (len(self.actions) - len(new_actions) + i, new_action.name, heuristic)
             for i, new_action in enumerate(new_actions)
         ]
-        if self.verbose:
-            print(f"Step {self.cur_step}: {action.name} -> {result['success']}, {reward}, {done}")
-            print(f"New actions: {output_new_actions}")
+        # if self.verbose:
+        #     print(f"Step {self.cur_step}: {action.name} -> {result['success']}, {reward}, {done}")
+        #     print(f"New actions: {output_new_actions}")
         if not return_heuristic:
             return reward, done, output_new_actions
         else:

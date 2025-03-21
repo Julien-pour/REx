@@ -22,7 +22,8 @@ def unsafe_execute(test_cases, solution, timeout: float, result):
         chdir = os.chdir
 
         # Disable functionalities that can make destructive changes to the test.
-        reliability_guard()
+        # set 1GB memory limit
+        reliability_guard(1024 * 1024 * 1024)
 
         # Construct the check program and run it.
 
@@ -154,7 +155,7 @@ def chdir(root):
         os.chdir(cwd)
 
 
-def reliability_guard(maximum_memory_bytes: Optional[int] = None):
+def reliability_guard(maximum_memory_bytes: Optional[int] = 1024 * 1024 * 1024):
     """
     This disables various destructive functions and prevents the generated code
     from interfering with the test (e.g. fork bomb, killing other processes,
@@ -165,6 +166,8 @@ def reliability_guard(maximum_memory_bytes: Optional[int] = None):
     generated code, should not be blindly executed outside of one. See the
     Codex paper for more information about OpenAI's code sandbox, and proceed
     with caution.
+
+    default 1GB memory limit
     """
 
     if maximum_memory_bytes is not None:
