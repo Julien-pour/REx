@@ -41,7 +41,7 @@ class LLMClient:
                 self.client =  AzureOpenAI(
                     azure_endpoint = self.base_url, 
                     api_key=self.api_key,  
-                    api_version="2024-02-15-preview"
+                    api_version="2024-05-01-preview"
                     ) 
             else:
                 self.client = OpenAI(base_url=self.base_url, api_key=self.api_key,timeout=self.timeout)

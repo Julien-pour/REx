@@ -63,12 +63,12 @@ def refine_apps_get_prompt(data, check_result, verbose_level=2):
     request_data = _construct_iterative_prompts([request_data])[0]
     prompt = copy.deepcopy(_message_d)
     prompt[-1]['content'] = request_data['prompt']
-    if verbose_level >= 2:
-        print('Prompt:')
-        for p in prompt:
-            print('-'*5, f' Role: {p["role"]} ', '-'*20)
-            print(p['content'])
-        print()
+    # if verbose_level >= 2:
+    #     print('Prompt:')
+    #     for p in prompt:
+    #         print('-'*5, f' Role: {p["role"]} ', '-'*20)
+    #         print(p['content'])
+    #     print()
 
     return prompt
 
@@ -98,15 +98,15 @@ def refine_apps_exec(data, check_result, response, verbose_level=2):
     #     print()
 
     solution = _extract_actual_solution({request_data['question_name']: request_data}, request_data['question_name'], response,)
-    if verbose_level >= 2:
-        print('-'*5, ' Extracted Solution: ', '-'*20)
-        print(solution)
-        print()
+    # if verbose_level >= 2:
+    #     print('-'*5, ' Extracted Solution: ', '-'*20)
+    #     print(solution)
+    #     print()
     check_result = data.check(solution)
-    if verbose_level >= 2:
-        print('-'*5, ' Check Result: ', '-'*20)
-        print(check_result)
-        print()
+    # if verbose_level >= 2:
+    #     print('-'*5, ' Check Result: ', '-'*20)
+    #     print(check_result)
+    #     print()
     success = check_result['success']
 
     return {

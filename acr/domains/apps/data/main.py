@@ -4,10 +4,10 @@
 import os
 import json
 import hashlib
-
+import gc
 from ..from_jin.utility import read_problems_data as _read_problems_data
 from ..from_jin.utility import run_single_solution_test as _run_single_solution_test
-from ..from_jin.sandbox import check_correctness
+from ..from_jin.sandbox import check_correctness, check_correctness_multi
 
 from ....utils.caching import _CacheSystem
 
@@ -94,7 +94,11 @@ class APPSCachedCheck(_CacheSystem):
         all_results = dict()
         try:
             if self.use_sandbox:
-                timeout = self.compile_timeout + self.runtime_timeout* len(test_cases["inputs"]) + 20
+                # timeout = 15#self.compile_timeout + self.runtime_timeout 
+                # results = check_correctness_multi(None,
+                #     test_cases, solution,timeout = timeout,)
+                
+                timeout = 5 + 5* len(test_cases["inputs"]) 
                 results = check_correctness(None,
                     test_cases, solution,timeout = timeout,
                     
@@ -105,9 +109,11 @@ class APPSCachedCheck(_CacheSystem):
                     test_cases, solution, False, True,
                     self.compile_timeout, self.runtime_timeout,
                 )
+        
         except Exception as e:
             print('Failed solution {0} tests results: {1}'.format(solution, e))
             assert 0 == 1  # temporary solution
+        gc.collect()
         all_results['evaluation'] = message
         all_results['solution'] = solution  # should already be extracted anyway
         all_results['success'] = (all_results['evaluation'] == 'all test cases passed')

@@ -12,7 +12,8 @@ from unittest.mock import patch, mock_open
 import gc
 from enum import Enum
 from tqdm import tqdm
-
+import sys
+sys.setrecursionlimit(10**6)
 try:
     import resource
     RESOURCE_MODULE_AVAILABLE = True
@@ -127,13 +128,16 @@ def run_test_clean(proposed_solution, test_cases, evaluation_mode, run_all, comp
     elif evaluation_mode == 'function_call':
         which_type = CODE_TYPE.call_based  # Call-based
         method_name = test_cases["fn_name"].strip()
+
     else:
         raise NotImplementedError
+    print(which_type)
     results = []
     errors = []
     outputs = []
     boilerplate = "import sys\nimport time\nimport itertools\nfrom itertools import accumulate, product, permutations, combinations\nimport collections\nfrom collections import Counter, OrderedDict, deque, defaultdict, ChainMap\nfrom functools import lru_cache\nimport math\nfrom math import sqrt, sin, cos, tan, ceil, fabs, floor, gcd, exp, log, log2\nimport fractions\nfrom typing import List, Tuple\nimport numpy as np\nimport random\nimport heapq\nfrom heapq import *\n"
     sol = boilerplate
+    # sol +="sys.setrecursionlimit(10**6)\n"
 
     if which_type == CODE_TYPE.call_based:
         sol += proposed_solution
@@ -157,6 +161,8 @@ def run_test_clean(proposed_solution, test_cases, evaluation_mode, run_all, comp
         if system_platform == 'Linux':
             signal.alarm(0)
     elif which_type == CODE_TYPE.standard_input:
+
+        
         tmp_test = proposed_solution.split("\n")
         # indentation formatting
         new_test = []
@@ -212,6 +218,7 @@ def run_test_clean(proposed_solution, test_cases, evaluation_mode, run_all, comp
 
     for index, inputs in tqdm(enumerate(test_cases["inputs"]), total=len(test_cases["inputs"]), ncols=0, leave=False):
         gc.collect()
+        print("idx test",index)
         # JSON forces dictionaries to have string keys; this undoes this (assuming a singleton list)
         try:
             if isinstance(inputs[0], dict):
@@ -284,16 +291,18 @@ def run_test_clean(proposed_solution, test_cases, evaluation_mode, run_all, comp
                 inputs = "\n".join(inputs)
             if isinstance(test_cases['outputs'][index], list):
                 test_cases['outputs'][index] = "\n".join(test_cases['outputs'][index])
-            if system_platform == 'Linux':
-                signal.alarm(runtime_timeout)
+            # if system_platform == 'Linux':
+                # signal.alarm(runtime_timeout)
             with Capturing() as output:
                 try:
+                    # print("try call method")
                     call_method(method, inputs)
-                    if system_platform == 'Linux':
-                        signal.alarm(0)
+                    # if system_platform == 'Linux':
+                        # signal.alarm(0)
                 except Exception as e:
-                    if system_platform == 'Linux':
-                        signal.alarm(0)
+                    # if system_platform == 'Linux':
+                        # signal.alarm(0)
+                    print("call method exception")
                     results.append(-1)
                     errors.append(e)
                     outputs.append(None)
@@ -302,9 +311,11 @@ def run_test_clean(proposed_solution, test_cases, evaluation_mode, run_all, comp
                     else:
                         # TESTING TRICK: exit loop if not pass a test case
                         return results, errors, outputs, sol
-                if system_platform == 'Linux':
-                    signal.alarm(0)
+                # if system_platform == 'Linux':
+                #     signal.alarm(0)
+                
             original_output = output.copy()
+            print(" output collected", original_output)
             if custom_compare_(output, test_cases['outputs'][index]):
                 tmp_result = True
                 results.append(tmp_result)

@@ -87,7 +87,7 @@ def get_depth(evaluation_path):
     return s.count('-')
 
 
-def analyze_error(tests, line_number_offset, curr_results, curr_errors, outputs, curr_sol, run_all, truncate_actual_output_limit=500):
+def analyze_error(tests, line_number_offset, curr_results, curr_errors, outputs, curr_sol, run_all, truncate_actual_output_limit=500,force_timeout=False):
     first_result = None
     first_result_index = None
     for e in curr_results:
@@ -150,7 +150,7 @@ def analyze_error(tests, line_number_offset, curr_results, curr_errors, outputs,
             output_formatted = tests['outputs'][first_result_index].replace('\n', '\\n')
         else:
             output_formatted = tests['outputs'][first_result_index]
-        if error_type == 'TimeoutException':
+        if error_type == 'TimeoutException' or force_timeout:
             if run_all:
                 message = 'runtime error at test case {0} for input {1} and expected output {2}. Error type: {3}\nOverall evaluation: {4} out of {5} test cases passed'.format(first_result_index, input_formatted, output_formatted, error_type, num_test_cases_passed, len(tests['inputs']))
             else:
@@ -231,6 +231,7 @@ def run_single_solution_test(tests, proposed_solution, use_old_run_func=False, r
             raise NotImplementedError
         else:
             curr_results, curr_errors, outputs, curr_sol = run_test_clean(proposed_solution, tests_copy, evaluation_mode, run_all_tests, compile_timeout=compile_timeout, runtime_timeout=runtime_timeout)
+        print('run_test_clean done  ')
         curr_errors = [(e, traceback.format_tb(e.__traceback__)) if e is not None else e for e in curr_errors]
         fixed = []
         for e in curr_results:
@@ -244,4 +245,48 @@ def run_single_solution_test(tests, proposed_solution, use_old_run_func=False, r
     finally:
         assert isinstance(curr_results, list)
     message = analyze_error(tests, line_number_offset, curr_results, curr_errors, outputs, curr_sol, run_all_tests)
+    return message
+
+
+
+def run_single_solution_test_exec_multi(tests, proposed_solution, use_old_run_func=False, run_all_tests=True, compile_timeout=20, runtime_timeout=5):
+    """"""
+    if 'fn_name' in tests:
+        evaluation_mode = 'function_call'
+        line_number_offset = 15  # hard coded
+    else:
+        evaluation_mode = 'standard_input'
+        line_number_offset = 18  # hard coded
+    curr_results = []
+    tests_copy = copy.deepcopy(tests)  # to make test cases unchanged when analyzing error
+    try:
+        if use_old_run_func:
+            raise NotImplementedError
+        else:
+            curr_results, curr_errors, outputs, curr_sol = run_test_clean(proposed_solution, tests_copy, evaluation_mode, run_all_tests, compile_timeout=compile_timeout, runtime_timeout=runtime_timeout)
+        curr_errors = [(e, traceback.format_tb(e.__traceback__)) if e is not None else e for e in curr_errors]
+        fixed = []
+        for e in curr_results:
+            if isinstance(e, np.bool_):
+                e = bool(e)
+            fixed.append(e)
+        curr_results = fixed
+    except Exception as e:
+        print(f"test framework exception = {repr(e)}{e}\n")
+        assert 0 == 1
+    # finally:
+    #     assert isinstance(curr_results, list)
+    # message = analyze_error(tests, line_number_offset, curr_results, curr_errors, outputs, curr_sol, run_all_tests)
+    return curr_results, curr_errors, outputs, curr_sol
+
+
+def run_single_solution_test_analyse_multi(tests, curr_results, curr_errors, outputs, curr_sol, run_all_tests=True,force_timeout=False):
+    """"""
+    if 'fn_name' in tests:
+        evaluation_mode = 'function_call'
+        line_number_offset = 15  # hard coded
+    else:
+        evaluation_mode = 'standard_input'
+        line_number_offset = 18  # hard coded
+    message = analyze_error(tests, line_number_offset, curr_results, curr_errors, outputs, curr_sol, run_all_tests,force_timeout=force_timeout)
     return message
