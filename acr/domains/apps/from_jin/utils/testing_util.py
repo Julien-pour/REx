@@ -215,10 +215,10 @@ def run_test_clean(proposed_solution, test_cases, evaluation_mode, run_all, comp
         errors.append(e)
         outputs.append(None)
         return results, errors, outputs, sol
-
+    print("number of test: ",len(test_cases["inputs"]))
     for index, inputs in tqdm(enumerate(test_cases["inputs"]), total=len(test_cases["inputs"]), ncols=0, leave=False):
         gc.collect()
-        print("idx test",index)
+        
         # JSON forces dictionaries to have string keys; this undoes this (assuming a singleton list)
         try:
             if isinstance(inputs[0], dict):
@@ -315,7 +315,7 @@ def run_test_clean(proposed_solution, test_cases, evaluation_mode, run_all, comp
                 #     signal.alarm(0)
                 
             original_output = output.copy()
-            print(" output collected", original_output)
+            # print(" output collected", original_output)
             if custom_compare_(output, test_cases['outputs'][index]):
                 tmp_result = True
                 results.append(tmp_result)

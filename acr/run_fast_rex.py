@@ -12,6 +12,7 @@ from .utils.logging import set_logger
 from .scheduler.rex import add_rex_args, get_rex_args, rex
 from tqdm import trange,tqdm
 import numpy as np
+import pickle
 def get_args():
     parser = argparse.ArgumentParser()
     add_domain_args(parser)
@@ -72,8 +73,12 @@ def main():
     max_steps = 300
     list_save_response = {pb_id:[]for pb_id in list_problem_to_solve}
 
+    path_save_res = os.path.join(result_dir, arg2name(args)+'_response.pkl')
+    if os.path.exists(path_save_res):
+        with open(path_save_res, "rb") as f:
+            list_save_response = pickle.load(f)
     for si in trange(max_steps, desc="steps"):
-        list_save_response_step= {pb_id:{}for pb_id in list_problem_to_solve}
+        list_save_response_step = {pb_id:{}for pb_id in list_problem_to_solve}
         list_prompts = []
         list_idx_actions_selected = {}
         for problem_id in list_problem_to_solve:
@@ -83,17 +88,27 @@ def main():
             list_idx_actions_selected[problem_id] = action["index"]
             prompt = domain.step_get_prompt(list_idx_actions_selected[problem_id],problem_id)
             list_prompts.append(prompt)
+            list_save_response_step[problem_id]["prompt"] = prompt
         # break
         # generate solutions
         print("==="*10)
         print("generating response")
+        # check if prompt is already in the list_save_response so we can skip it and load it form there
         
         list_response = llm_serv.generate(list_prompts)
+
+        # add here responses
+
         # compute rewards
         list_solved = []
         print("checking response")
         for id_resp,problem_id in enumerate(tqdm(list_problem_to_solve, desc="checking problem")):
+            list_save_response_step[problem_id]["response"] = list_response[id_resp][0]
+
             reward, done, new_actions = domain.step_execute(list_idx_actions_selected[problem_id],problem_id,list_response[id_resp][0])
+            list_save_response_step[problem_id]["reward"] = reward
+            list_save_response_step[problem_id]["done"] = done
+
             all_metrics[problem_id].append(domain.get_metrics(problem_id))
             if done:
                 list_solved.append(problem_id)
@@ -117,6 +132,9 @@ def main():
         print(f"problem solved: {len(list_solved_history)}/{len(list_all_actions)}")
         for key in list_save_response_step:
             list_save_response[key].append(list_save_response_step[key])
+
+        with open(path_save_res, 'wb') as f:
+            pickle.dump(list_save_response, f)
     for problem_id in range(len(list_all_actions)):
         all_metrics[problem_id] += [all_metrics[problem_id][-1]] * (max_steps - len(all_metrics[problem_id]))
 
@@ -125,8 +143,7 @@ def main():
         # print(domain.summarize_results(metrics))
     with open(os.path.join(result_dir, arg2name(args)+'.json'), 'w') as f:
         json.dump(all_metrics, f, indent=4)
-    with open(os.path.join(result_dir, arg2name(args)+'_response.json'), 'w') as f:
-        json.dump(list_save_response, f, indent=4)
+
     if args.sglang:
         llm_serv.terminate()
 if __name__ == '__main__':
