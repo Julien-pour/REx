@@ -105,9 +105,11 @@ def main():
                 if list_save_response[str(problem_id)][si]["prompt"][1]["content"] == list_prompts[idx][1]["content"]:
                     list_response[idx].append(list_save_response[str(problem_id)][si]["response"])
                     list_id_cache_flag.append(idx)
+                    continue
+                else:
                     list_prompt_to_gen.append(list_prompts[idx])
                     list_id_prompt_togen_to_idx.append(idx)
-                    continue
+                    
 
         
         # for idx, problem_id in enumerate(list_problem_to_solve):
@@ -119,8 +121,9 @@ def main():
         print("==="*10)
         print("generating response")
         # check if prompt is already in the list_save_response so we can skip it and load it form there
-        
+        print(f"generating {len(list_prompt_to_gen)} responses")
         list_response_gen = llm_serv.generate(list_prompt_to_gen)
+        assert len(list_response_gen) == len(list_id_prompt_togen_to_idx)
         for idx in range(len(list_response_gen)):
             list_response[list_id_prompt_togen_to_idx[idx]] = list_response_gen[idx]
 
