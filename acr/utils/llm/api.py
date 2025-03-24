@@ -20,6 +20,7 @@ def init_sglang_serv(model_path, model_len=30000, seed=0, n_gpu=1, temperature=1
     )
     port = np.random.randint(30000,30050)
     def launch_serv(model_path, model_len, seed, n_gpu, max_memory, fp8, port):
+        print(f"Launching server on port {port}...")
         command = f"python -m sglang.launch_server --model-path {model_path} --port {port} --host 0.0.0.0 --tp {n_gpu} --context-length {model_len} --random-seed {seed} --mem-fraction-static {max_memory} "
         if fp8:
             command += "--quantization fp8 " 

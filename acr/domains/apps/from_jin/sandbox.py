@@ -11,49 +11,47 @@ from typing import Dict, Optional
 import time
 
 def unsafe_execute(test_cases, solution, timeout: float, result):
-    with create_tempdir():
+    # with create_tempdir():
 
-        # These system calls are needed when cleaning up tempdir.
-        import os
-        import shutil
+    # These system calls are needed when cleaning up tempdir.
+    import os
+    import shutil
 
-        rmtree = shutil.rmtree
-        rmdir = os.rmdir
-        chdir = os.chdir
+    rmtree = shutil.rmtree
+    rmdir = os.rmdir
+    chdir = os.chdir
 
-        # Disable functionalities that can make destructive changes to the test.
-        # set 1GB memory limit
+    # Disable functionalities that can make destructive changes to the test.
+    # Construct the check program and run it.
+
+    try:
         reliability_guard(100 * 1024 * 1024 * 1024)
 
-        # Construct the check program and run it.
+        # with swallow_io():
+        # with time_limit(timeout):
+            # WARNING
+            # This program exists to execute untrusted model-generated code. Although
+            # it is highly unlikely that model-generated code will do something overtly
+            # malicious in response to this test suite, model-generated code may act
+            # destructively due to a lack of model capability or alignment.
+            # Users are strongly encouraged to sandbox this evaluation suite so that it
+            # does not perform destructive actions on their host or network. For more
+            # information on how OpenAI sandboxes its code, see the accompanying paper.
+            # Once you have read this disclaimer and taken appropriate precautions,
+            # uncomment the following line and proceed at your own risk:
+        message = _run_single_solution_test(test_cases, solution, False, True, 20,5)
+        result.append(message)
+    # except TimeoutException:
+    #     result.append("timed out")
+    #     print("test framework exception = timed out")
+    except BaseException as e:
+        result.append(f"failed: {e}")
+        print(f"test framework exception = {repr(e)}{e}\n")
 
-        try:
-            
-            # with swallow_io():
-            # with time_limit(timeout):
-                # WARNING
-                # This program exists to execute untrusted model-generated code. Although
-                # it is highly unlikely that model-generated code will do something overtly
-                # malicious in response to this test suite, model-generated code may act
-                # destructively due to a lack of model capability or alignment.
-                # Users are strongly encouraged to sandbox this evaluation suite so that it
-                # does not perform destructive actions on their host or network. For more
-                # information on how OpenAI sandboxes its code, see the accompanying paper.
-                # Once you have read this disclaimer and taken appropriate precautions,
-                # uncomment the following line and proceed at your own risk:
-            message = _run_single_solution_test(test_cases, solution, False, True, 20,5)
-            result.append(message)
-        # except TimeoutException:
-        #     result.append("timed out")
-        #     print("test framework exception = timed out")
-        except BaseException as e:
-            result.append(f"failed: {e}")
-            print(f"test framework exception = {repr(e)}{e}\n")
-
-        # Needed for cleaning up.
-        shutil.rmtree = rmtree
-        os.rmdir = rmdir
-        os.chdir = chdir
+    # Needed for cleaning up.
+    shutil.rmtree = rmtree
+    os.rmdir = rmdir
+    os.chdir = chdir
 
 
 def check_correctness(

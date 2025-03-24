@@ -131,7 +131,7 @@ def run_test_clean(proposed_solution, test_cases, evaluation_mode, run_all, comp
 
     else:
         raise NotImplementedError
-    print(which_type)
+    # print(which_type)
     results = []
     errors = []
     outputs = []

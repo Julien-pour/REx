@@ -22,7 +22,7 @@ def get_args():
     parser.add_argument('--seeds', type=int, nargs='+', default=[0])
     parser.add_argument("--sglang", action=argparse.BooleanOptionalAction,default=True, help="use sglang")
     parser.add_argument('--n_gpu', type=int, default=1, help="Number of GPUs to use")
-    parser.add_argument('--llm_model', type=str, default='gpt-4o-mini', help="LLM model name")
+    parser.add_argument('--llm_model', type=str, default='/home/flowers/work/hf/Qwen2.5-Coder-3B-Instruct', help="LLM model name")
     args = parser.parse_args()
     return args
 
@@ -74,11 +74,15 @@ def main():
     list_save_response = {pb_id:[]for pb_id in list_problem_to_solve}
 
     path_save_res = os.path.join(result_dir, arg2name(args)+'_response.pkl')
+    print("path_save_res", path_save_res)
     if os.path.exists(path_save_res):
         with open(path_save_res, "rb") as f:
             list_save_response = pickle.load(f)
+    else:
+        list_save_response = {str(pb_id):[] for pb_id in list_problem_to_solve}
+
     for si in trange(max_steps, desc="steps"):
-        list_save_response_step = {pb_id:{}for pb_id in list_problem_to_solve}
+        list_save_response_step = {str(pb_id):{} for pb_id in list_problem_to_solve}
         list_prompts = []
         list_idx_actions_selected = {}
         for problem_id in list_problem_to_solve:
@@ -88,14 +92,34 @@ def main():
             list_idx_actions_selected[problem_id] = action["index"]
             prompt = domain.step_get_prompt(list_idx_actions_selected[problem_id],problem_id)
             list_prompts.append(prompt)
-            list_save_response_step[problem_id]["prompt"] = prompt
+            list_save_response_step[str(problem_id)]["prompt"] = prompt
         # break
+
+        list_response = [[] for _ in range(len(list_prompts))]
+        list_id_cache_flag = []
+        # check if prompt is already in the list_save_response so we can skip it and load it form there
+        list_prompt_to_gen = []
+        for idx, problem_id in enumerate(list_problem_to_solve):
+            if len(list_save_response[str(problem_id)]) > si:
+                if list_save_response[str(problem_id)][si]["prompt"][1]["content"] == list_prompts[idx][1]["content"]:
+                    list_response[idx].append(list_save_response[str(problem_id)][si]["response"])
+                    list_id_cache_flag.append(idx)
+                    continue
+
+        list_id_prompt_togen_to_idx = []
+        for idx, problem_id in enumerate(list_problem_to_solve):
+            if idx not in list_id_cache_flag:
+                list_prompt_to_gen.append(list_prompts[idx])
+                list_id_prompt_togen_to_idx.append(idx)
+
         # generate solutions
         print("==="*10)
         print("generating response")
         # check if prompt is already in the list_save_response so we can skip it and load it form there
         
-        list_response = llm_serv.generate(list_prompts)
+        list_response_gen = llm_serv.generate(list_prompts)
+        for idx in range(len(list_response_gen)):
+            list_response[list_id_prompt_togen_to_idx[idx]] = list_response_gen[idx]
 
         # add here responses
 
@@ -105,10 +129,16 @@ def main():
         for id_resp,problem_id in enumerate(tqdm(list_problem_to_solve, desc="checking problem")):
             list_save_response_step[problem_id]["response"] = list_response[id_resp][0]
 
-            reward, done, new_actions = domain.step_execute(list_idx_actions_selected[problem_id],problem_id,list_response[id_resp][0])
+            if idx in list_id_cache_flag:
+                # if cache found
+                result = list_save_response[str(problem_id)][si]["result"]
+                reward, done, new_actions = domain.step_execute_cache(list_idx_actions_selected[problem_id],problem_id,list_response[idx][0],result,return_res=False)
+            else:
+                reward, done, new_actions, result = domain.step_execute(list_idx_actions_selected[problem_id],problem_id,list_response[idx][0],return_res=True)
+
             list_save_response_step[problem_id]["reward"] = reward
             list_save_response_step[problem_id]["done"] = done
-
+            list_save_response_step[str(problem_id)]["result"] = result
             all_metrics[problem_id].append(domain.get_metrics(problem_id))
             if done:
                 list_solved.append(problem_id)
@@ -131,7 +161,10 @@ def main():
         print("step", si)
         print(f"problem solved: {len(list_solved_history)}/{len(list_all_actions)}")
         for key in list_save_response_step:
-            list_save_response[key].append(list_save_response_step[key])
+            if len(list_save_response[key]) <= si:
+                list_save_response[key].append({})
+            # list_save_response[key].append(list_save_response_step[key])
+            list_save_response[key][si] = list_save_response_step[key]
 
         with open(path_save_res, 'wb') as f:
             pickle.dump(list_save_response, f)

@@ -231,7 +231,7 @@ def run_single_solution_test(tests, proposed_solution, use_old_run_func=False, r
             raise NotImplementedError
         else:
             curr_results, curr_errors, outputs, curr_sol = run_test_clean(proposed_solution, tests_copy, evaluation_mode, run_all_tests, compile_timeout=compile_timeout, runtime_timeout=runtime_timeout)
-        print('run_test_clean done  ')
+        # print('run_test_clean done  ')
         curr_errors = [(e, traceback.format_tb(e.__traceback__)) if e is not None else e for e in curr_errors]
         fixed = []
         for e in curr_results:

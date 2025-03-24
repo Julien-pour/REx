@@ -138,6 +138,7 @@ class APPSCachedCheck(_CacheSystem):
             all_results['failed'] = total - succeeded
             all_results['success_rate'] = succeeded / total
         return all_results
+    
     def _cache_id(self, test_cases, solution):
         assert isinstance(test_cases, dict)
         assert set(['inputs', 'outputs']).issubset(set(test_cases.keys())), test_cases

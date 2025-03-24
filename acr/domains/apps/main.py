@@ -240,7 +240,7 @@ class APPSDomain_multi(_Domain):
         prompt = action.get_prompt()
         return prompt
     
-    def step_execute(self, action_index, problem_id, response, return_heuristic=False):
+    def step_execute(self, action_index, problem_id, response, return_heuristic=False,return_res=False):
         assert 0 <= action_index < len(self.list_actions[problem_id])
         action = self.list_actions[problem_id][action_index]
         result = action.execute(response)
@@ -256,10 +256,48 @@ class APPSDomain_multi(_Domain):
         # if self.verbose:
         #     print(f"Step {self.cur_step}: {action.name} -> {result['success']}, {reward}, {done}")
         #     print(f"New actions: {output_new_actions}")
+        
+
         if not return_heuristic:
-            return reward, done, output_new_actions
+            if return_res:
+                return reward, done, output_new_actions, result
+            else:
+                return reward, done, output_new_actions
         else:
-            return reward, done, output_new_actions, heuristic
+            if return_res:
+                return reward, done, output_new_actions, heuristic, result
+            else:
+                return reward, done, output_new_actions, heuristic
+
+
+    def step_execute_cache(self, action_index, problem_id, response, result, return_heuristic=False,return_res=False):
+        assert 0 <= action_index < len(self.list_actions[problem_id])
+        action = self.list_actions[problem_id][action_index]
+        # result = action.execute(response)
+        reward, done = self.compute_reward(result)
+        heuristic = self.compute_heuristic(result)
+        new_actions = self.get_new_actions(result,problem_id)
+        self.update_max_metrics(result, problem_id)
+        self.list_actions[problem_id] += new_actions
+        output_new_actions = [
+            (len(self.list_actions[problem_id]) - len(new_actions) + i, new_action.name, heuristic)
+            for i, new_action in enumerate(new_actions)
+        ]
+        # if self.verbose:
+        #     print(f"Step {self.cur_step}: {action.name} -> {result['success']}, {reward}, {done}")
+        #     print(f"New actions: {output_new_actions}")
+        
+
+        if not return_heuristic:
+            if return_res:
+                return reward, done, output_new_actions, result
+            else:
+                return reward, done, output_new_actions
+        else:
+            if return_res:
+                return reward, done, output_new_actions, heuristic, result
+            else:
+                return reward, done, output_new_actions, heuristic
 
 
     def update_max_metrics(self, result, problem_id):
