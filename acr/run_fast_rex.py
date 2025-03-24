@@ -63,7 +63,6 @@ def main():
     
     rng = np.random.default_rng(args.llm_seed)
     list_all_actions = domain.reset()
-    list_all_actions = list_all_actions
     list_problem_to_solve = [problem_id for problem_id in range(len(list_all_actions))]
     list_solved_history = []
     all_metrics = [[] for _ in range(len(list_all_actions))]
@@ -76,6 +75,7 @@ def main():
     path_save_res = os.path.join(result_dir, arg2name(args)+'_response.pkl')
     print("path_save_res", path_save_res)
     if os.path.exists(path_save_res):
+        print("loading previous response")
         with open(path_save_res, "rb") as f:
             list_save_response = pickle.load(f)
     else:
@@ -99,25 +99,28 @@ def main():
         list_id_cache_flag = []
         # check if prompt is already in the list_save_response so we can skip it and load it form there
         list_prompt_to_gen = []
+        list_id_prompt_togen_to_idx = []
         for idx, problem_id in enumerate(list_problem_to_solve):
             if len(list_save_response[str(problem_id)]) > si:
                 if list_save_response[str(problem_id)][si]["prompt"][1]["content"] == list_prompts[idx][1]["content"]:
                     list_response[idx].append(list_save_response[str(problem_id)][si]["response"])
                     list_id_cache_flag.append(idx)
+                    list_prompt_to_gen.append(list_prompts[idx])
+                    list_id_prompt_togen_to_idx.append(idx)
                     continue
 
-        list_id_prompt_togen_to_idx = []
-        for idx, problem_id in enumerate(list_problem_to_solve):
-            if idx not in list_id_cache_flag:
-                list_prompt_to_gen.append(list_prompts[idx])
-                list_id_prompt_togen_to_idx.append(idx)
+        
+        # for idx, problem_id in enumerate(list_problem_to_solve):
+        #     if idx not in list_id_cache_flag:
+        #         list_prompt_to_gen.append(list_prompts[idx])
+        #         list_id_prompt_togen_to_idx.append(idx)
 
         # generate solutions
         print("==="*10)
         print("generating response")
         # check if prompt is already in the list_save_response so we can skip it and load it form there
         
-        list_response_gen = llm_serv.generate(list_prompts)
+        list_response_gen = llm_serv.generate(list_prompt_to_gen)
         for idx in range(len(list_response_gen)):
             list_response[list_id_prompt_togen_to_idx[idx]] = list_response_gen[idx]
 
@@ -126,18 +129,17 @@ def main():
         # compute rewards
         list_solved = []
         print("checking response")
-        for id_resp,problem_id in enumerate(tqdm(list_problem_to_solve, desc="checking problem")):
-            list_save_response_step[problem_id]["response"] = list_response[id_resp][0]
-
-            if idx in list_id_cache_flag:
+        for idx,problem_id in enumerate(tqdm(list_problem_to_solve)):
+            list_save_response_step[str(problem_id)]["response"] = list_response[idx][0]
+            if idx in list_id_cache_flag:   
                 # if cache found
                 result = list_save_response[str(problem_id)][si]["result"]
                 reward, done, new_actions = domain.step_execute_cache(list_idx_actions_selected[problem_id],problem_id,list_response[idx][0],result,return_res=False)
             else:
                 reward, done, new_actions, result = domain.step_execute(list_idx_actions_selected[problem_id],problem_id,list_response[idx][0],return_res=True)
 
-            list_save_response_step[problem_id]["reward"] = reward
-            list_save_response_step[problem_id]["done"] = done
+            list_save_response_step[str(problem_id)]["reward"] = reward
+            list_save_response_step[str(problem_id)]["done"] = done
             list_save_response_step[str(problem_id)]["result"] = result
             all_metrics[problem_id].append(domain.get_metrics(problem_id))
             if done:

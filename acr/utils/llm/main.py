@@ -9,9 +9,9 @@ from openai import OpenAI
 from ..caching import _CacheSystem
 
 def add_llm_args(parser):
-    parser.add_argument('--llm-model', type=str, default='gpt-4o-mini', help="The model to use for LLM")
+    parser.add_argument('--llm-model', type=str, default='/home/flowers/work/hf/Qwen2.5-Coder-3B-Instruct', help="The model to use for LLM")
     parser.add_argument('--llm-temperature', type=float, default=1.0, help="The temperature to use for LLM")
-    parser.add_argument('--llm-seed', type=int, default=None, help="The seed to use for LLM")
+    parser.add_argument('--llm-seed', type=int, default=0, help="The seed to use for LLM")
     parser.add_argument('--llm-cache-path', type=str, default='', help="LLM generated data cache path")
 
 def get_llm(args):
