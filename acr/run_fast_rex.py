@@ -70,7 +70,6 @@ def main():
         list_all_actions[problem_id] = [new_action(act) for act in list_all_actions[problem_id]]
 
     max_steps = 300
-    list_save_response = {pb_id:[]for pb_id in list_problem_to_solve}
 
     path_save_res = os.path.join(result_dir, arg2name(args)+'_response.pkl')
     print("path_save_res", path_save_res)
@@ -80,7 +79,9 @@ def main():
             list_save_response = pickle.load(f)
     else:
         list_save_response = {str(pb_id):[] for pb_id in list_problem_to_solve}
-
+    for pb_id in list_problem_to_solve:
+        if str(pb_id) not in list_save_response:
+            list_save_response[str(pb_id)] = []
     for si in trange(max_steps, desc="steps"):
         list_save_response_step = {str(pb_id):{} for pb_id in list_problem_to_solve}
         list_prompts = []
@@ -101,14 +102,16 @@ def main():
         list_prompt_to_gen = []
         list_id_prompt_togen_to_idx = []
         for idx, problem_id in enumerate(list_problem_to_solve):
-            if len(list_save_response[str(problem_id)]) > si:
+            flag_found = False
+            if len(list_save_response[str(problem_id)]) > si and not flag_found:
                 if list_save_response[str(problem_id)][si]["prompt"][1]["content"] == list_prompts[idx][1]["content"]:
                     list_response[idx].append(list_save_response[str(problem_id)][si]["response"])
                     list_id_cache_flag.append(idx)
-                    continue
-                else:
-                    list_prompt_to_gen.append(list_prompts[idx])
-                    list_id_prompt_togen_to_idx.append(idx)
+                    flag_found = True
+                    
+            if not flag_found:
+                list_prompt_to_gen.append(list_prompts[idx])
+                list_id_prompt_togen_to_idx.append(idx)
                     
 
         
